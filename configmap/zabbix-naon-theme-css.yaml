@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: zabbix-naon-theme-css
-  namespace: git
+  namespace: zabbix-server
 data:
   naon-theme.css: |
     .status-na-bg,

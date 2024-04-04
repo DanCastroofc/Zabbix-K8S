@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: zabbix-mariadb-statefulset
-  namespace: git
+  namespace: zabbix-server
 spec:
   selector:
     matchLabels:
@@ -74,7 +74,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: git
+  namespace: zabbix-server
   name: zabbix-mariadb-service
   labels:
     app: zabbix

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: zabbix-custom-theme-app
-  namespace: git
+  namespace: zabbix-server
 data:
   APP.php: |
     <?php

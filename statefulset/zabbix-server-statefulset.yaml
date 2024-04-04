@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: zabbix-server-statefulset
-  namespace: git
+  namespace: zabbix-server
   labels:
     app: zabbix
     zabbix-app: zabbix-server
@@ -86,7 +86,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: zabbix-server-service
-  namespace: git
+  namespace: zabbix-server
   labels:
     app: zabbix
     zabbix-app: zabbix-server-service
@@ -107,7 +107,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: zabbix-server-loadbalancer
-  namespace: git
+  namespace: zabbix-server
 spec:
   selector:
     app: zabbix

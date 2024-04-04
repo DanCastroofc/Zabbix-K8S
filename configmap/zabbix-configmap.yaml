@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: zabbix-configmap
-  namespace: git
+  namespace: zabbix-server
 data:
   MYSQL_USER: zabbix
   MYSQL_DATABASE: zabbix

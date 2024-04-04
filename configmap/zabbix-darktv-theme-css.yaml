@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: zabbix-darktv-theme-css
-  namespace: git
+  namespace: zabbix-server
 data:
   dark-tv.css: |
     /*Inicio Parametros personalizados*/
