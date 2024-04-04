@@ -9,10 +9,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - monitor.git.digital
+    - <DNS>
     secretName: "letsencrypt-zabbix-tls"
   rules:
-  - host: monitor.git.digital
+  - host: <DNS>
     http:
       paths:
       - path: /

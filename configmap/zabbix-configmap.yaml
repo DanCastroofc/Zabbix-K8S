@@ -12,6 +12,6 @@ data:
   ZBX_SERVER_HOST: zabbix-server-service
   ZBX_SERVER_PORT: "10051"
   ZBX_HOSTNAME: "Zabbix server"
-  ZBX_SERVER_NAME: "Zabbix GIT Digital"
+  ZBX_SERVER_NAME: "Zabbix Server"
   ZBX_AGENT_SERVER_HOST: 127.0.0.1
   ZBX_STARTPINGERS: "10"
