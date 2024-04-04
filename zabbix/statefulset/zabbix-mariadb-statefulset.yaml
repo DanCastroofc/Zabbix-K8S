@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zabbix-mariadb-statefulset
+  namespace: git
+spec:
+  selector:
+    matchLabels:
+      app: zabbix
+      zabbix-app: zabbix-mariadb
+  serviceName: "zabbix-mariadb-service"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: zabbix
+        zabbix-app: zabbix-mariadb
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - pve2-git
+      containers:
+      - name: zabbix-mariadb
+        image: mariadb:10.5.24-focal
+        args:
+        - "--default-authentication-plugin=mysql_native_password"
+        - --character-set-server=utf8
+        - --collation-server=utf8_bin
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: zabbix-secret
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              key: MYSQL_DATABASE
+              name: zabbix-configmap
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: zabbix-configmap
+              key: MYSQL_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: zabbix-secret
+              key: MYSQL_PASSWORD
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        ports:
+        - containerPort: 3306
+          name: zabbix-mariadb
+        volumeMounts:
+        - name: zabbix-mariadb-volume
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: zabbix-mariadb-volume
+        hostPath:
+          path: /db/mysql-zabbix
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: git
+  name: zabbix-mariadb-service
+  labels:
+    app: zabbix
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3306
+  selector:
+    app: zabbix
+    zabbix-app: zabbix-mariadb

@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zabbix-web-deployment
+  namespace: git
+spec:
+  selector:
+    matchLabels:
+      app: zabbix
+      zabbix-app: zabbix-web
+  template:
+    metadata:
+      labels:
+        app: zabbix
+        zabbix-app: zabbix-web
+    spec:
+      securityContext:
+        runAsUser: 0
+      containers:
+      - name: zabbix-web
+        image: zabbix/zabbix-web-nginx-mysql:6.0.21-ubuntu
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        env:
+        - name: DB_SERVER_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: zabbix-configmap
+              key: DB_SERVER_HOST
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              key: MYSQL_DATABASE
+              name: zabbix-configmap
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: MYSQL_ROOT_PASSWORD
+              name: zabbix-secret
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: MYSQL_PASSWORD
+              name: zabbix-secret
+        - name: ZBX_SERVER_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: ZBX_SERVER_HOST
+              name: zabbix-configmap
+        - name: ZBX_SERVER_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: ZBX_SERVER_NAME
+              name: zabbix-configmap
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /usr/share/zabbix/assets/styles/dark-tv.css
+          subPath: dark-tv.css
+          name: zabbix-darktv-theme-css
+        - mountPath: /usr/share/zabbix/assets/styles/naon-theme.css
+          subPath: naon-theme.css
+          name: zabbix-naon-theme-css
+        - mountPath: /usr/share/zabbix/assets/styles/naon-theme-tv.css
+          subPath: naon-theme-tv.css
+          name: zabbix-naon-theme-tv-css
+        - mountPath: /usr/share/zabbix/include/classes/core/APP.php
+          subPath: APP.php
+          name: zabbix-custom-theme-app
+      volumes:
+      - name: zabbix-darktv-theme-css
+        configMap:
+          name: zabbix-darktv-theme-css
+      - name: zabbix-naon-theme-css
+        configMap:
+          name: zabbix-naon-theme-css
+      - name: zabbix-naon-theme-tv-css
+        configMap:
+          name: zabbix-naon-theme-tv-css
+      - name: zabbix-custom-theme-app
+        configMap:
+          name: zabbix-custom-theme-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zabbix-web-service
+  namespace: git
+  labels:
+    app: zabbix
+spec:
+  selector:
+    app: zabbix
+    zabbix-app: zabbix-web
+  ports:
+  - name: zabbix-web-port
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+status:
+  loadBalancer: {}

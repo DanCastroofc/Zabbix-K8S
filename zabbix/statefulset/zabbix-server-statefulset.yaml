@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zabbix-server-statefulset
+  namespace: git
+  labels:
+    app: zabbix
+    zabbix-app: zabbix-server
+spec:
+  selector:
+    matchLabels:
+      app: zabbix
+      zabbix-app: zabbix-server
+  serviceName: "zabbix-server"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: zabbix
+        zabbix-app: zabbix-server
+    spec:
+      containers:
+      - name: zabbix-server
+        image: zabbix/zabbix-server-mysql:6.0.21-alpine
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "4000m"
+        ports:
+        - containerPort: 10051
+          name: zabbix-trapper
+        - containerPort: 10050
+          name: zabbix-server
+        env:
+        - name: DB_SERVER_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: zabbix-configmap
+              key: DB_SERVER_HOST
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: zabbix-secret
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              key: MYSQL_DATABASE
+              name: zabbix-configmap
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: zabbix-configmap
+              key: MYSQL_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: zabbix-secret
+              key: MYSQL_PASSWORD
+        - name: ZBX_STARTPINGERS
+          valueFrom:
+            configMapKeyRef:
+              name: zabbix-configmap
+              key: ZBX_STARTPINGERS
+      - name: zabbix-agent
+        image: zabbix/zabbix-agent:6.0.21-alpine
+        ports:
+        - containerPort: 10050
+          name: zabbix-port
+        env:
+        - name: ZBX_SERVER_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: ZBX_AGENT_SERVER_HOST
+              name: zabbix-configmap
+        - name: ZBX_HOSTNAME
+          valueFrom:
+            configMapKeyRef:
+              key: ZBX_HOSTNAME
+              name: zabbix-configmap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zabbix-server-service
+  namespace: git
+  labels:
+    app: zabbix
+    zabbix-app: zabbix-server-service
+spec:
+  type: ClusterIP
+  ports:
+  - name: "10051-trapper"
+    port: 10051
+    targetPort: 10051
+  - name: "10050"
+    port: 10050
+    targetPort: 10050
+  selector:
+    app: zabbix
+    zabbix-app: zabbix-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zabbix-server-loadbalancer
+  namespace: git
+spec:
+  selector:
+    app: zabbix
+    zabbix-app: zabbix-server
+  ports:
+  - name: "30051"
+    protocol: TCP
+    port: 10051
+    targetPort: 10051
+    nodePort: 30051
+  type: LoadBalancer
